@@ -23,7 +23,7 @@
 const DATA = {
 
   /* ---------- 动作：吃喝 ---------- */
-  "吃 eat": { related:["喝 drink","嘴 mouth"], words:[
+  "吃 eat": { related:["喝 drink","嘴 mouth","食物 food","做饭 cook"], words:[
     ["eat", "吃（通用）", "eat lunch"],
     ["swallow", "吞咽：不嚼直接咽下去", "swallow a pill"],
     ["chew", "咀嚼：用牙磨碎", "chew gum"],
@@ -46,7 +46,7 @@ const DATA = {
   ]},
 
   /* ---------- 动作：移动 / 感官 ---------- */
-  "移动 / 走 move": { related:["路 road"], words:[
+  "移动 / 走 move": { related:["路 road","快 fast"], words:[
     ["walk", "走、步行", "walk to school"],
     ["run", "跑", "run fast"],
     ["jog", "慢跑（健身）", "jog in the park"],
@@ -105,7 +105,7 @@ const DATA = {
   ]},
 
   /* ---------- 动作：手部 ---------- */
-  "拿 / 握 hold": { related:["扔 throw","推拉 push / pull"], words:[
+  "拿 / 握 hold": { related:["扔 throw","推拉 push / pull","给 give"], words:[
     ["hold", "拿着、握住、抱", "hold a cup"],
     ["grab", "抓住（突然、快）", "grab my hand"],
     ["grasp", "紧紧抓住、握牢", "grasp the rope"],
@@ -124,7 +124,7 @@ const DATA = {
     ["fling", "（用力、随意）甩出", "fling the door open"],
     ["cast", "投、撒（网/钓线，正式）", "cast a net"],
   ]},
-  "打 hit": { related:[], words:[
+  "打 hit": { related:["破坏 break"], words:[
     ["hit", "打、击中（通用）", "hit the target"],
     ["strike", "击打（正式/突然）", "strike a match"],
     ["slap", "扇、掌掴", "slap his face"],
@@ -143,7 +143,7 @@ const DATA = {
     ["lift", "举起、抬", "lift weights"],
     ["carry", "搬运、携带", "carry a bag"],
   ]},
-  "切 cut": { related:[], words:[
+  "切 cut": { related:["做饭 cook"], words:[
     ["cut", "切、割（通用）", "cut the cake"],
     ["slice", "切片", "slice bread"],
     ["chop", "剁、砍（用力、成块）", "chop vegetables"],
@@ -164,7 +164,7 @@ const DATA = {
     ["guess", "猜测", "guess the answer"],
     ["doubt", "怀疑", "doubt the news"],
   ]},
-  "睡 sleep": { related:[], words:[
+  "睡 sleep": { related:["累 tired"], words:[
     ["sleep", "睡觉（通用）", "sleep eight hours"],
     ["nap", "小睡、打盹", "take a nap"],
     ["doze", "打瞌睡（不知不觉）", "doze off"],
@@ -173,8 +173,156 @@ const DATA = {
     ["yawn", "打哈欠", "yawn sleepily"],
   ]},
 
+  /* ---------- 动作：更多 ---------- */
+  "给 give": { related:["拿 / 握 hold"], words:[
+    ["give", "给（通用）", "give a gift"],
+    ["offer", "（主动）提供、提议", "offer help"],
+    ["provide", "提供（正式），provide sb with", "provide food"],
+    ["hand", "递给（手递手）", "hand me the salt"],
+    ["present", "赠予、颁发（正式）", "present an award"],
+    ["donate", "捐赠", "donate money to charity"],
+    ["deliver", "递送、配送", "deliver a parcel"],
+    ["supply", "供应（持续、批量）", "supply electricity"],
+  ]},
+  "做 / 造 make": { related:[], words:[
+    ["make", "做、制作（通用）", "make a cake"],
+    ["do", "做、从事（动作/事务）", "do homework"],
+    ["create", "创造、创作", "create art"],
+    ["build", "建造、搭建", "build a house"],
+    ["produce", "生产、制造", "produce cars"],
+    ["construct", "建造（正式、大型）", "construct a bridge"],
+    ["manufacture", "（工厂）批量制造", "manufacture goods"],
+  ]},
+  "帮助 help": { related:[], words:[
+    ["help", "帮助（通用）", "help a friend"],
+    ["assist", "协助（正式）", "assist the manager"],
+    ["aid", "援助（多指物资/正式）", "aid the victims"],
+    ["support", "支持、扶持", "support a cause"],
+    ["back", "支持、力挺", "back the plan"],
+  ]},
+  "开始 start": { related:["结束 finish"], words:[
+    ["start", "开始（通用）", "start work"],
+    ["begin", "开始（稍正式）", "begin a journey"],
+    ["commence", "开始（很正式、书面）", "commence proceedings"],
+    ["launch", "发起、推出、发射", "launch a product"],
+    ["initiate", "发起、启动（正式）", "initiate a project"],
+  ]},
+  "结束 finish": { related:["开始 start"], words:[
+    ["finish", "完成、结束（通用）", "finish dinner"],
+    ["end", "结束、终结", "end a war"],
+    ["complete", "完成（达到完整）", "complete the form"],
+    ["stop", "停止", "stop talking"],
+    ["cease", "停止（正式）", "cease fire"],
+    ["conclude", "结束、总结（正式）", "conclude the speech"],
+  ]},
+  "增加 increase": { related:["减少 reduce"], words:[
+    ["increase", "增加（通用）", "increase production"],
+    ["rise", "上升（不及物，不接宾语）", "Prices rise."],
+    ["raise", "提高（及物，接宾语）", "raise prices"],
+    ["grow", "增长（自然、逐渐）", "The economy grows."],
+    ["expand", "扩张、扩大", "expand the business"],
+    ["boost", "促进、提升", "boost sales"],
+    ["soar", "猛涨、剧增", "Prices soared."],
+  ]},
+  "减少 reduce": { related:["增加 increase"], words:[
+    ["reduce", "减少（主动降低）", "reduce costs"],
+    ["decrease", "减少（数量下降，正式）", "Sales decreased."],
+    ["decline", "下降、衰退（渐、常负面）", "Population declines."],
+    ["drop", "（突然）下降、下跌", "Temperatures dropped."],
+    ["diminish", "削弱、减小（重要性）", "diminish its value"],
+    ["shrink", "缩小、收缩", "The market shrank."],
+  ]},
+  "改变 change": { related:[], words:[
+    ["change", "改变（通用）", "change your mind"],
+    ["alter", "（部分、细节）更改", "alter a dress"],
+    ["modify", "（小幅）修改、调整", "modify the design"],
+    ["transform", "（彻底）改变、变形", "transform the city"],
+    ["adjust", "调整、调节", "adjust the volume"],
+    ["convert", "转换、改装", "convert dollars to euros"],
+  ]},
+  "学习 learn": { related:["教 teach"], words:[
+    ["learn", "学会、掌握（结果）", "learn English"],
+    ["study", "学习、钻研（过程）", "study hard"],
+    ["master", "精通", "master a skill"],
+    ["revise", "复习（英式）", "revise for exams"],
+    ["memorize", "背诵、记住", "memorize a poem"],
+    ["practise", "练习（英式拼写）", "practise the piano"],
+  ]},
+  "教 teach": { related:["学习 learn"], words:[
+    ["teach", "教（通用）", "teach maths"],
+    ["instruct", "指导、传授（正式）", "instruct students"],
+    ["train", "培训、训练", "train new staff"],
+    ["educate", "教育", "educate children"],
+    ["coach", "辅导、教练", "coach a team"],
+    ["tutor", "（一对一）辅导", "tutor a student"],
+  ]},
+  "找 find": { related:[], words:[
+    ["find", "找到（通用）", "find the keys"],
+    ["discover", "发现（已存在的）", "discover a cave"],
+    ["locate", "定位、找到（确切位置）", "locate the fault"],
+    ["detect", "察觉、探测", "detect a leak"],
+    ["search", "搜寻（动作，search for）", "search for clues"],
+    ["seek", "寻求（正式）", "seek advice"],
+  ]},
+  "买卖 buy / sell": { related:["钱 money"], words:[
+    ["buy", "买（通用）", "buy a ticket"],
+    ["purchase", "购买（正式）", "purchase goods"],
+    ["sell", "卖", "sell a car"],
+    ["trade", "交易、买卖", "trade stocks"],
+    ["bargain", "讨价还价", "bargain over the price"],
+    ["afford", "买得起、负担得起", "can't afford it"],
+  ]},
+  "做饭 cook": { related:["吃 eat","食物 food","切 cut"], words:[
+    ["cook", "做饭、烹饪（通用）", "cook dinner"],
+    ["boil", "煮、煮沸", "boil an egg"],
+    ["fry", "煎、炒、炸", "fry an egg"],
+    ["bake", "烘焙（烤箱、面点）", "bake bread"],
+    ["roast", "烤（肉、整块）", "roast a chicken"],
+    ["grill", "炙烤、烧烤", "grill steak"],
+    ["steam", "蒸", "steam vegetables"],
+  ]},
+  "清洁 clean": { related:[], words:[
+    ["clean", "打扫、弄干净（通用）", "clean the room"],
+    ["wash", "洗", "wash your hands"],
+    ["wipe", "擦（用布/纸）", "wipe the table"],
+    ["scrub", "用力擦洗、刷", "scrub the floor"],
+    ["rinse", "冲洗、漂洗", "rinse the cup"],
+    ["sweep", "扫", "sweep the floor"],
+    ["mop", "拖（地）", "mop the kitchen"],
+  ]},
+  "破坏 break": { related:["修 fix","打 hit"], words:[
+    ["break", "弄坏、打破（通用）", "break a glass"],
+    ["smash", "猛砸、砸碎", "smash a window"],
+    ["crack", "（出现裂纹）裂开", "The cup cracked."],
+    ["shatter", "（碎成片）粉碎", "The mirror shattered."],
+    ["destroy", "彻底摧毁", "destroy the building"],
+    ["ruin", "毁掉、糟蹋", "ruin the party"],
+  ]},
+  "修 fix": { related:["破坏 break"], words:[
+    ["fix", "修理（通用、口语）", "fix the car"],
+    ["repair", "修理（较正式）", "repair the roof"],
+    ["mend", "修补（衣物、小物）", "mend a sock"],
+    ["restore", "修复、还原（旧物）", "restore a painting"],
+  ]},
+  "触摸 touch": { related:[], words:[
+    ["touch", "触摸、碰（通用）", "touch the screen"],
+    ["feel", "（用手）感觉、摸", "feel the fabric"],
+    ["stroke", "抚摸（轻、来回）", "stroke a cat"],
+    ["pat", "轻拍", "pat the dog"],
+    ["rub", "揉、摩擦", "rub your eyes"],
+    ["scratch", "挠、抓", "scratch an itch"],
+  ]},
+  "掉落 fall": { related:[], words:[
+    ["fall", "落下、跌倒（通用）", "fall down"],
+    ["drop", "掉落（物从手中）", "drop a plate"],
+    ["collapse", "倒塌、坍塌", "The roof collapsed."],
+    ["tumble", "滚落、摔倒", "tumble down the stairs"],
+    ["slip", "滑倒、打滑", "slip on the ice"],
+    ["trip", "绊倒、绊一下", "trip over a wire"],
+  ]},
+
   /* ---------- 情绪（形容词）---------- */
-  "高兴 happy": { related:["难过 sad"], words:[
+  "高兴 happy": { related:["难过 sad","兴奋 excited"], words:[
     ["happy", "高兴、幸福（通用）", "a happy child"],
     ["glad", "（一时）高兴的", "glad to see you"],
     ["pleased", "满意、欣慰", "pleased with the result"],
@@ -211,12 +359,42 @@ const DATA = {
     ["anxious", "焦虑、担忧", "anxious about the future"],
     ["panic", "惊慌（名/动）", "panic in the crowd"],
   ]},
-  "累 tired": { related:[], words:[
+  "累 tired": { related:["睡 sleep"], words:[
     ["tired", "累（通用）", "feel tired"],
     ["exhausted", "精疲力竭（语气强）", "completely exhausted"],
     ["weary", "疲惫、厌倦", "weary after work"],
     ["sleepy", "困、想睡", "sleepy in class"],
     ["fatigued", "疲劳的（正式/医学）", "physically fatigued"],
+  ]},
+  "喜欢 like": { related:["讨厌 hate"], words:[
+    ["like", "喜欢（通用）", "like music"],
+    ["love", "热爱、爱", "love painting"],
+    ["enjoy", "享受、喜爱（+doing）", "enjoy reading"],
+    ["adore", "极喜爱、崇拜", "adore her"],
+    ["fancy", "喜欢、想要（英式口语）", "fancy a coffee"],
+    ["prefer", "更喜欢", "prefer tea to coffee"],
+  ]},
+  "讨厌 hate": { related:["喜欢 like"], words:[
+    ["hate", "讨厌、恨（通用）", "hate Mondays"],
+    ["dislike", "不喜欢（较温和、正式）", "dislike the noise"],
+    ["loathe", "厌恶（强烈）", "loathe violence"],
+    ["detest", "憎恶（正式）", "detest lying"],
+    ["despise", "鄙视、看不起", "despise cowards"],
+  ]},
+  "惊讶 surprised": { related:[], words:[
+    ["surprised", "惊讶的（通用）", "surprised by the news"],
+    ["amazed", "惊叹、惊奇（多褒）", "amazed at the view"],
+    ["astonished", "震惊、大为吃惊", "astonished by the result"],
+    ["shocked", "震惊（多负面）", "shocked by the accident"],
+    ["stunned", "惊呆、目瞪口呆", "stunned into silence"],
+    ["startled", "（突然）吓一跳", "startled by a noise"],
+  ]},
+  "兴奋 excited": { related:["高兴 happy"], words:[
+    ["excited", "兴奋、激动", "excited about the trip"],
+    ["thrilled", "激动极了", "thrilled with the gift"],
+    ["eager", "渴望的、急切的", "eager to learn"],
+    ["enthusiastic", "热情的、热心的", "enthusiastic about sport"],
+    ["keen", "热衷的（英式）", "keen on football"],
   ]},
 
   /* ---------- 描述（形容词）---------- */
@@ -279,6 +457,50 @@ const DATA = {
     ["poor", "差的、质量低的", "poor quality"],
     ["nasty", "讨厌的、恶劣的", "a nasty surprise"],
   ]},
+  "重要 important": { related:[], words:[
+    ["important", "重要的（通用）", "an important decision"],
+    ["significant", "显著、有重大意义的", "a significant change"],
+    ["crucial", "至关重要、决定性的", "a crucial role"],
+    ["vital", "至关重要的（语气强）", "vital information"],
+    ["essential", "必不可少的", "essential for life"],
+    ["key", "关键的", "a key factor"],
+    ["major", "主要的、重大的", "a major issue"],
+  ]},
+  "安静 quiet": { related:[], words:[
+    ["quiet", "安静的（通用）", "a quiet room"],
+    ["silent", "寂静、无声的", "fall silent"],
+    ["calm", "平静的、镇定的", "stay calm"],
+    ["peaceful", "宁静、和平的", "a peaceful village"],
+    ["still", "静止的、不动的", "sit still"],
+  ]},
+  "冷 cold": { related:["热 hot"], words:[
+    ["cold", "冷的（通用）", "a cold day"],
+    ["cool", "凉爽的（偏舒适）", "a cool breeze"],
+    ["chilly", "微冷、有点凉", "a chilly morning"],
+    ["freezing", "极冷、冰冻的", "freezing weather"],
+    ["icy", "冰冷的、结冰的", "an icy road"],
+  ]},
+  "热 hot": { related:["冷 cold"], words:[
+    ["hot", "热的（通用）", "hot water"],
+    ["warm", "温暖的（舒适）", "a warm room"],
+    ["boiling", "滚烫的、沸腾的", "boiling hot"],
+    ["scorching", "灼热、酷热", "a scorching day"],
+    ["mild", "温和的（天气）", "a mild winter"],
+  ]},
+  "强 strong": { related:["弱 weak"], words:[
+    ["strong", "强壮、强大的（通用）", "a strong man"],
+    ["powerful", "强有力的、有权势的", "a powerful engine"],
+    ["mighty", "强大的（文学/夸张）", "a mighty army"],
+    ["tough", "坚韧的、强硬的", "a tough material"],
+    ["sturdy", "结实的、坚固的", "a sturdy table"],
+  ]},
+  "弱 weak": { related:["强 strong"], words:[
+    ["weak", "虚弱、弱的（通用）", "feel weak"],
+    ["feeble", "（身体）虚弱无力的", "a feeble voice"],
+    ["fragile", "易碎的、脆弱的", "fragile glass"],
+    ["frail", "（老弱）孱弱的", "a frail old man"],
+    ["delicate", "娇弱、精细的", "delicate skin"],
+  ]},
 
   /* ---------- 物品：穿戴 ---------- */
   "鞋 shoes": { related:["衣服 clothes"], words:[
@@ -304,7 +526,7 @@ const DATA = {
   ]},
 
   /* ---------- 物品：住与家具 ---------- */
-  "房子 house": { related:["家具 furniture"], words:[
+  "房子 house": { related:["家具 furniture","房间 room"], words:[
     ["house", "房子（独栋）", "a big house"],
     ["home", "家（含归属感）", "go home"],
     ["flat", "公寓（英式）", "rent a flat"],
@@ -322,6 +544,15 @@ const DATA = {
     ["table", "桌子", "a dining table"],
     ["desk", "书桌、办公桌", "a writing desk"],
     ["shelf", "架子", "a book shelf"],
+  ]},
+  "房间 room": { related:["房子 house"], words:[
+    ["bedroom", "卧室", "a cosy bedroom"],
+    ["kitchen", "厨房", "cook in the kitchen"],
+    ["bathroom", "浴室、卫生间", "use the bathroom"],
+    ["living room", "客厅", "relax in the living room"],
+    ["hallway", "走廊、门厅", "a narrow hallway"],
+    ["attic", "阁楼", "store boxes in the attic"],
+    ["basement", "地下室", "a damp basement"],
   ]},
 
   /* ---------- 物品：出行 ---------- */
@@ -346,7 +577,7 @@ const DATA = {
   ]},
 
   /* ---------- 物品：容器与随身 ---------- */
-  "容器 cup": { related:["喝 drink"], words:[
+  "容器 cup": { related:["喝 drink","餐具 cutlery"], words:[
     ["cup", "杯子（带把、喝热饮）", "a cup of tea"],
     ["mug", "马克杯（大、厚）", "a coffee mug"],
     ["glass", "玻璃杯", "a glass of water"],
@@ -367,7 +598,7 @@ const DATA = {
   ]},
 
   /* ---------- 身体部位 ---------- */
-  "嘴 mouth": { related:["吃 eat","说 speak"], words:[
+  "嘴 mouth": { related:["吃 eat","说 speak","脸 face"], words:[
     ["mouth", "嘴", "open your mouth"],
     ["lip", "嘴唇", "red lips"],
     ["tongue", "舌头", "stick out your tongue"],
@@ -376,15 +607,60 @@ const DATA = {
     ["throat", "喉咙", "a sore throat"],
     ["gum", "牙龈", "healthy gums"],
   ]},
-  "眼睛 eye": { related:["看 look"], words:[
+  "眼睛 eye": { related:["看 look","脸 face"], words:[
     ["eye", "眼睛", "blue eyes"],
     ["eyebrow", "眉毛", "raise an eyebrow"],
     ["eyelash", "睫毛", "long eyelashes"],
     ["eyelid", "眼皮", "heavy eyelids"],
     ["pupil", "瞳孔（也指学生）", "dilated pupils"],
   ]},
+  "脸 face": { related:["嘴 mouth","眼睛 eye","身体 body"], words:[
+    ["face", "脸", "wash your face"],
+    ["nose", "鼻子", "a runny nose"],
+    ["ear", "耳朵", "cover your ears"],
+    ["cheek", "脸颊", "rosy cheeks"],
+    ["chin", "下巴", "a pointed chin"],
+    ["forehead", "额头", "wrinkle your forehead"],
+    ["eyebrow", "眉毛", "raise an eyebrow"],
+  ]},
+  "身体 body": { related:["脸 face"], words:[
+    ["head", "头", "nod your head"],
+    ["arm", "手臂", "raise your arm"],
+    ["leg", "腿", "stretch your legs"],
+    ["hand", "手", "wave your hand"],
+    ["foot", "脚（复数 feet）", "on foot"],
+    ["shoulder", "肩膀", "a sore shoulder"],
+    ["knee", "膝盖", "bend your knees"],
+    ["chest", "胸部", "chest pain"],
+  ]},
 
-  /* ---------- 自然 / 抽象 ---------- */
+  /* ---------- 物品：餐厨 / 学习 / 设备 ---------- */
+  "餐具 cutlery": { related:["吃 eat","容器 cup"], words:[
+    ["knife", "刀", "a sharp knife"],
+    ["fork", "叉子", "use a fork"],
+    ["spoon", "勺子", "a soup spoon"],
+    ["plate", "盘子", "a dinner plate"],
+    ["chopsticks", "筷子", "eat with chopsticks"],
+    ["napkin", "餐巾", "a paper napkin"],
+  ]},
+  "文具 stationery": { related:[], words:[
+    ["pen", "钢笔、笔", "write with a pen"],
+    ["pencil", "铅笔", "a sharp pencil"],
+    ["notebook", "笔记本", "a thick notebook"],
+    ["eraser", "橡皮", "use an eraser"],
+    ["ruler", "尺子", "a plastic ruler"],
+    ["marker", "记号笔", "a black marker"],
+  ]},
+  "电子设备 device": { related:[], words:[
+    ["phone", "手机、电话", "answer the phone"],
+    ["computer", "电脑", "use a computer"],
+    ["laptop", "笔记本电脑", "a thin laptop"],
+    ["tablet", "平板电脑", "read on a tablet"],
+    ["screen", "屏幕", "a touch screen"],
+    ["keyboard", "键盘", "type on a keyboard"],
+  ]},
+
+  /* ---------- 自然 / 类别族 ---------- */
   "天气 weather": { related:[], words:[
     ["rain", "雨", "heavy rain"],
     ["drizzle", "毛毛雨", "a light drizzle"],
@@ -395,7 +671,55 @@ const DATA = {
     ["breeze", "微风", "a gentle breeze"],
     ["thunder", "雷", "thunder and lightning"],
   ]},
-  "钱 money": { related:[], words:[
+  "食物 food": { related:["吃 eat","做饭 cook"], words:[
+    ["meal", "一餐、餐食", "a healthy meal"],
+    ["snack", "零食、点心", "a quick snack"],
+    ["dish", "一道菜", "a tasty dish"],
+    ["feast", "盛宴、大餐", "a wedding feast"],
+    ["cuisine", "菜系、烹饪风格", "Italian cuisine"],
+    ["recipe", "食谱", "follow a recipe"],
+  ]},
+  "水果 fruit": { related:[], words:[
+    ["apple", "苹果", "a red apple"],
+    ["banana", "香蕉", "a ripe banana"],
+    ["orange", "橙子", "a juicy orange"],
+    ["grape", "葡萄", "a bunch of grapes"],
+    ["pear", "梨", "a sweet pear"],
+    ["peach", "桃子", "a soft peach"],
+    ["strawberry", "草莓", "fresh strawberries"],
+    ["mango", "芒果", "a ripe mango"],
+  ]},
+  "动物 animal": { related:[], words:[
+    ["dog", "狗", "a pet dog"],
+    ["cat", "猫", "a black cat"],
+    ["horse", "马", "ride a horse"],
+    ["cow", "牛", "a dairy cow"],
+    ["sheep", "羊", "a flock of sheep"],
+    ["pig", "猪", "a fat pig"],
+    ["rabbit", "兔子", "a white rabbit"],
+    ["chicken", "鸡", "feed the chickens"],
+  ]},
+  "植物 plant": { related:[], words:[
+    ["tree", "树", "an old tree"],
+    ["flower", "花", "pick flowers"],
+    ["grass", "草", "green grass"],
+    ["bush", "灌木", "a rose bush"],
+    ["leaf", "叶子", "fallen leaves"],
+    ["root", "根", "deep roots"],
+    ["branch", "树枝", "a broken branch"],
+    ["seed", "种子", "plant seeds"],
+  ]},
+  "时间 time": { related:[], words:[
+    ["second", "秒", "wait a second"],
+    ["minute", "分钟", "five minutes"],
+    ["hour", "小时", "an hour later"],
+    ["day", "天", "a sunny day"],
+    ["week", "周", "next week"],
+    ["month", "月", "last month"],
+    ["year", "年", "this year"],
+    ["decade", "十年", "the past decade"],
+  ]},
+  "钱 money": { related:["买卖 buy / sell"], words:[
     ["money", "钱（统称、不可数）", "earn money"],
     ["cash", "现金", "pay in cash"],
     ["coin", "硬币", "a gold coin"],
