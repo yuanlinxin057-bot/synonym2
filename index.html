@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英语单词联想网络</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { height:100%; background:#15161a; color:#dcdde1; font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,Arial,sans-serif; overflow:hidden; }
+  #app { display:flex; height:100vh; }
+  #graph { flex:1; position:relative; }
+  svg { width:100%; height:100%; display:block; cursor:grab; }
+  svg:active { cursor:grabbing; }
+  .link { stroke:#3a3d46; stroke-width:1px; }
+  .link.rel { stroke:#54506e; stroke-dasharray:4 4; }
+  .node circle { stroke:#15161a; stroke-width:1.5px; cursor:pointer; transition:opacity .15s; }
+  .node text { fill:#b6b8c0; font-size:11px; pointer-events:none; transition:opacity .15s; paint-order:stroke; stroke:#15161a; stroke-width:3px; stroke-linejoin:round; }
+  .node.concept text { font-size:13px; font-weight:700; fill:#fff; }
+  .node.bridge text { fill:#f0c674; }
+  .dim { opacity:0.07 !important; }
+  .dimtext { opacity:0.05 !important; }
+
+  #top { position:absolute; top:14px; left:14px; right:14px; display:flex; gap:10px; align-items:center; pointer-events:none; z-index:5; flex-wrap:wrap; }
+  #top > * { pointer-events:auto; }
+  #title { font-size:15px; font-weight:700; color:#fff; background:rgba(30,32,38,.85); padding:8px 14px; border-radius:8px; backdrop-filter:blur(6px); }
+  #title small { font-weight:400; color:#9a9da6; font-size:11px; margin-left:6px; }
+  #search { background:rgba(30,32,38,.9); border:1px solid #3a3d46; color:#dcdde1; padding:8px 12px; border-radius:8px; font-size:13px; width:190px; outline:none; }
+  #search:focus { border-color:#6f86d6; }
+  .info { display:flex; gap:14px; background:rgba(30,32,38,.85); padding:8px 14px; border-radius:8px; font-size:12px; backdrop-filter:blur(6px); color:#aeb1ba; }
+  .info span { display:flex; align-items:center; gap:6px; }
+  .dot { width:11px; height:11px; border-radius:50%; display:inline-block; }
+  #hint { position:absolute; bottom:14px; left:14px; font-size:11px; color:#6b6e78; background:rgba(30,32,38,.7); padding:6px 12px; border-radius:6px; }
+
+  #panel { width:330px; background:#1b1d23; border-left:1px solid #2a2c34; padding:22px; overflow-y:auto; transition:margin-right .25s; }
+  #panel.hidden { margin-right:-330px; }
+  #panel h2 { font-size:26px; color:#fff; margin-bottom:8px; }
+  #panel .tags { margin-bottom:14px; }
+  #panel .tag { display:inline-block; font-size:11px; padding:3px 10px; border-radius:20px; margin:0 6px 6px 0; color:#15161a; font-weight:700; cursor:pointer; }
+  #panel .field-label { font-size:11px; color:#7d808a; text-transform:uppercase; letter-spacing:1px; margin:16px 0 5px; }
+  #panel .diff { font-size:16px; line-height:1.6; color:#e6e7ea; }
+  #panel .eg { font-size:14px; line-height:1.6; color:#9aa0c0; font-style:italic; background:#222530; padding:10px 12px; border-radius:8px; border-left:3px solid #6f86d6; }
+  #panel .group-words { margin-top:18px; }
+  #panel .group-words .gw-label { font-size:11px; color:#7d808a; margin:14px 0 8px; }
+  #panel .chip { display:inline-block; background:#262932; border:1px solid #343844; color:#c8cad2; font-size:13px; padding:4px 10px; border-radius:6px; margin:0 6px 6px 0; cursor:pointer; }
+  #panel .chip:hover { border-color:#6f86d6; color:#fff; }
+  #panel .chip.bridge { border-color:#7a6a30; color:#f0c674; }
+  @media (max-width:680px){ #panel{ position:absolute; right:0; top:0; bottom:0; z-index:20;} #search{width:130px;} .info{display:none;} }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="graph">
+    <div id="top">
+      <div id="title">英语单词联想网络 <small id="stat"></small></div>
+      <input id="search" placeholder="搜索单词 / 概念…" autocomplete="off">
+      <div class="info">
+        <span><i class="dot" style="background:#6f86d6"></i>概念</span>
+        <span><i class="dot" style="background:#2a2d36;border:2px solid #5b5e68"></i>单词</span>
+        <span><i class="dot" style="background:#f0c674"></i>桥词（连接多个概念）</span>
+      </div>
+    </div>
+    <div id="hint">拖拽节点 · 滚轮缩放 · 悬停高亮 · 点击查看释义 · 金色=同时属于多个概念的桥词</div>
+  </div>
+  <div id="panel" class="hidden"></div>
+</div>
+
+<!-- 单词数据在 data.js 里，想加词只改那个文件 -->
+<script src="data.js"></script>
+<script>
+// 概念配色（循环调色板）
+const PALETTE = ["#6f86d6","#6fcf97","#e8a85a","#b07fe0","#56a8e8","#e57f7f","#5ec5c0","#d68fc4","#9ec25a","#e0a04a","#7f9cf5","#5fb98e"];
+const concepts = Object.keys(DATA);
+const conColor = {}; concepts.forEach((c,i)=>conColor[c]=PALETTE[i%PALETTE.length]);
+
+// 构建节点：概念节点 + 单词节点（同名词合并为一个，连到多个概念=桥）
+const nodes=[], links=[], idOf={}, wordNode={};
+let wordCount=0;
+concepts.forEach(con=>{
+  const cid="con:"+con;
+  const cn={ id:cid, label:con, type:"concept", color:conColor[con], concepts:[con], r:14 };
+  idOf[cid]=cn; nodes.push(cn);
+});
+concepts.forEach(con=>{
+  (DATA[con].words||[]).forEach(([w,diff,eg])=>{
+    let wn=wordNode[w.toLowerCase()];
+    if(!wn){
+      wn={ id:"w:"+w.toLowerCase(), label:w, type:"word", diff, eg, concepts:[], color:"#2a2d36", r:6 };
+      wordNode[w.toLowerCase()]=wn; idOf[wn.id]=wn; nodes.push(wn); wordCount++;
+    }
+    wn.concepts.push(con);
+    // 桥词信息：记录每个概念下的释义
+    (wn.byCon = wn.byCon||{})[con] = {diff, eg};
+    links.push({ source:"con:"+con, target:wn.id, rel:false });
+  });
+});
+// 概念之间的 related 连线
+concepts.forEach(con=>{
+  (DATA[con].related||[]).forEach(r=>{
+    if(DATA[r]){ links.push({ source:"con:"+con, target:"con:"+r, rel:true }); }
+  });
+});
+// 标记桥词 + 上色
+nodes.forEach(n=>{
+  if(n.type==="word"){
+    if(n.concepts.length>1){ n.bridge=true; n.r=8; n.color="#3a3320"; }
+    else { n.stroke=conColor[n.concepts[0]]; }
+  }
+});
+document.getElementById("stat").textContent = `· ${concepts.length} 概念 / ${wordCount} 词`;
+
+const adj={}; nodes.forEach(n=>adj[n.id]=new Set());
+links.forEach(l=>{ adj[l.source].add(l.target); adj[l.target].add(l.source); });
+
+const svg=d3.select("#graph").append("svg");
+const g=svg.append("g");
+const W=()=>document.getElementById("graph").clientWidth;
+const H=()=>document.getElementById("graph").clientHeight;
+const zoom=d3.zoom().scaleExtent([0.12,4]).on("zoom",e=>g.attr("transform",e.transform));
+svg.call(zoom);
+
+const link=g.append("g").selectAll("line").data(links).join("line").attr("class",d=>"link"+(d.rel?" rel":""));
+const node=g.append("g").selectAll("g").data(nodes).join("g").attr("class",d=>"node "+d.type+(d.bridge?" bridge":""));
+node.append("circle")
+  .attr("r",d=>d.r)
+  .attr("fill",d=> d.type==="concept" ? d.color : (d.bridge?"#3a3320":"#2a2d36"))
+  .attr("stroke",d=> d.type==="concept" ? "#15161a" : (d.bridge?"#f0c674":d.stroke))
+  .attr("stroke-width",d=> d.type==="concept" ? 1.5 : 2);
+node.append("text").attr("x",d=>d.r+4).attr("y",4).text(d=>d.label);
+
+node.on("mouseover",(e,d)=>{ if(!pinned) highlight(d); })
+    .on("mouseout",()=>{ if(!pinned) clearHi(); })
+    .on("click",(e,d)=>{ if(d.type==="word") showPanel(d); else showConcept(d.label); });
+
+const sim=d3.forceSimulation(nodes)
+  .force("link", d3.forceLink(links).id(d=>d.id).distance(d=> d.rel?160 : (d.target.type==="word"?40:40)).strength(d=>d.rel?0.05:0.6))
+  .force("charge", d3.forceManyBody().strength(d=> d.type==="concept"?-650:-110))
+  .force("center", d3.forceCenter(W()/2,H()/2))
+  .force("collide", d3.forceCollide().radius(d=>d.r+12))
+  .on("tick",ticked);
+function ticked(){
+  link.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y).attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+  node.attr("transform",d=>`translate(${d.x},${d.y})`);
+}
+node.call(d3.drag()
+  .on("start",(e,d)=>{ if(!e.active) sim.alphaTarget(.3).restart(); d.fx=d.x; d.fy=d.y; })
+  .on("drag",(e,d)=>{ d.fx=e.x; d.fy=e.y; })
+  .on("end",(e,d)=>{ if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; }));
+
+let pinned=null;
+function neighborSet(d){
+  const keep=new Set([d.id]); adj[d.id].forEach(x=>keep.add(x));
+  return keep;
+}
+function applyDim(keep){
+  node.select("circle").classed("dim",n=>!keep.has(n.id));
+  node.select("text").classed("dimtext",n=>!keep.has(n.id));
+  link.classed("dim",l=>!(keep.has(l.source.id)&&keep.has(l.target.id)));
+}
+function highlight(d){ applyDim(neighborSet(d)); }
+function clearHi(){ node.select("circle").classed("dim",false); node.select("text").classed("dimtext",false); link.classed("dim",false); }
+
+const panel=document.getElementById("panel");
+function showPanel(d){
+  pinned=d; highlight(d);
+  const cons=d.concepts;
+  // 同组词：来自所属所有概念
+  const sibSet=new Map();
+  cons.forEach(con=>{(DATA[con].words||[]).forEach(([w])=>{ if(w.toLowerCase()!==d.label.toLowerCase()) sibSet.set(w.toLowerCase(),w); });});
+  const sibs=[...sibSet.values()];
+  // 桥词：分别展示每个概念下的释义
+  let body="";
+  if(d.bridge){
+    body = cons.map(con=>{
+      const info=d.byCon[con];
+      return `<div class="field-label" style="color:${conColor[con]}">在「${con}」中</div>
+              <div class="diff">${info.diff}</div>
+              ${info.eg?`<div class="eg">${info.eg}</div>`:""}`;
+    }).join("");
+  } else {
+    body = `<div class="field-label">释义 / 用法</div><div class="diff">${d.diff}</div>
+            ${d.eg?`<div class="eg">${d.eg}</div>`:""}`;
+  }
+  panel.innerHTML=`
+    <h2 style="color:${d.bridge?'#f0c674':conColor[cons[0]]}">${d.label}</h2>
+    <div class="tags">${cons.map(c=>`<span class="tag" data-con="${encodeURIComponent(c)}" style="background:${conColor[c]}">${c}</span>`).join("")}</div>
+    ${body}
+    <div class="group-words">
+      <div class="gw-label">相关联想词（点击切换）</div>
+      ${sibs.map(s=>{const wn=wordNode[s.toLowerCase()]; return `<span class="chip${wn&&wn.bridge?' bridge':''}" data-w="${encodeURIComponent(s)}">${s}</span>`;}).join("")}
+    </div>`;
+  panel.classList.remove("hidden");
+  panel.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ const wn=wordNode[decodeURIComponent(c.getAttribute("data-w")).toLowerCase()]; if(wn) showPanel(wn); });
+  panel.querySelectorAll(".tag").forEach(t=>t.onclick=()=>showConcept(decodeURIComponent(t.getAttribute("data-con"))));
+}
+function showConcept(con){
+  const cn=idOf["con:"+con]; if(!cn) return;
+  pinned=cn; highlight(cn);
+  const words=(DATA[con].words||[]);
+  panel.innerHTML=`
+    <h2 style="color:${conColor[con]}">${con}</h2>
+    <div class="field-label">这个概念下的词（点击看释义）</div>
+    <div class="group-words">
+      ${words.map(([w])=>{const wn=wordNode[w.toLowerCase()]; return `<span class="chip${wn&&wn.bridge?' bridge':''}" data-w="${encodeURIComponent(w)}">${w}</span>`;}).join("")}
+    </div>`;
+  panel.classList.remove("hidden");
+  panel.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ const wn=wordNode[decodeURIComponent(c.getAttribute("data-w")).toLowerCase()]; if(wn) showPanel(wn); });
+}
+function closePanel(){ panel.classList.add("hidden"); pinned=null; }
+
+const search=document.getElementById("search");
+search.addEventListener("input",()=>{
+  const q=search.value.trim().toLowerCase();
+  if(!q){ if(!pinned) clearHi(); return; }
+  pinned=null; closePanel();
+  const match=new Set();
+  nodes.forEach(n=>{ if(n.label.toLowerCase().includes(q)){ match.add(n.id); adj[n.id].forEach(x=>match.add(x)); } });
+  applyDim(match);
+});
+search.addEventListener("keydown",e=>{
+  if(e.key==="Enter"){
+    const q=search.value.trim().toLowerCase();
+    const wn=wordNode[q]||Object.values(wordNode).find(n=>n.label.toLowerCase().includes(q));
+    if(wn) showPanel(wn);
+  }
+});
+
+window.addEventListener("resize",()=>{ sim.force("center",d3.forceCenter(W()/2,H()/2)); sim.alpha(.3).restart(); });
+setTimeout(()=>{ svg.transition().duration(700).call(zoom.transform, d3.zoomIdentity.translate(W()*0.08,H()*0.08).scale(0.5)); }, 500);
+</script>
+</body>
+</html>
