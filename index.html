@@ -57,6 +57,10 @@
   .qbtns button { flex:1; padding:10px; border-radius:9px; border:none; font-size:14px; cursor:pointer; }
   .qnext { background:#6f86d6; color:#fff; }
   .qreveal { background:#2a2d36; color:#cdd0d8; }
+  #review { position:absolute; inset:0; background:rgba(12,13,16,.82); backdrop-filter:blur(4px); z-index:30; display:none; align-items:center; justify-content:center; }
+  #review.show { display:flex; }
+  .rstat { font-size:13px; color:#aab0bd; line-height:1.9; margin-bottom:14px; }
+  .rstat b { color:#fff; }
 
   #panel { width:340px; background:#1b1d23; border-left:1px solid #2a2c34; padding:20px 22px; overflow-y:auto; transition:margin-right .25s; position:relative; }
   #panel.hidden { margin-right:-340px; }
@@ -85,6 +89,7 @@
     <div id="top">
       <div id="title">英语单词联想网络 <small id="stat"></small></div>
       <input id="search" placeholder="搜索单词 / 概念…" autocomplete="off">
+      <button id="reviewBtn" class="tbtn">📅 复习</button>
       <button id="quizBtn" class="tbtn">🎲 测验</button>
       <button id="bridgeBtn" class="tbtn">桥词</button>
       <div class="info">
@@ -102,6 +107,10 @@
   <div class="qsub">看中文回忆英文，点卡片揭晓答案</div>
   <div id="qlist"></div>
   <div class="qbtns"><button class="qreveal" id="qrevealAll">全部显示</button><button class="qnext" id="qnext">换一组 →</button></div>
+</div></div>
+<div id="review"><div class="qcard">
+  <div class="qhead"><h3 id="rtitle">复习计划</h3><button class="qx" id="rclose">✕</button></div>
+  <div id="rbody"></div>
 </div></div>
 
 <!-- 单词数据在 data.js 里，想加词只改那个文件 -->
@@ -286,6 +295,71 @@ document.getElementById("qrevealAll").onclick=()=>document.querySelectorAll("#ql
 document.getElementById("qclose").onclick=()=>quiz.classList.remove("show");
 quiz.addEventListener("click",e=>{ if(e.target===quiz) quiz.classList.remove("show"); });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") quiz.classList.remove("show"); });
+
+// ---- 遗忘曲线间隔复习 (SRS) ----
+const SRS_KEY="vocab_srs_v1";
+const INTERVALS=[1,2,4,7,15,30,60]; // 复习间隔（天）
+const DAY=86400000;
+function loadSRS(){ try{ return JSON.parse(localStorage.getItem(SRS_KEY))||{}; }catch(e){ return {}; } }
+function saveSRS(s){ try{ localStorage.setItem(SRS_KEY,JSON.stringify(s)); }catch(e){} }
+function dueList(){ const s=loadSRS(); return Object.keys(s).filter(c=>DATA[c]&&s[c].due<=Date.now()); }
+function rate(con,ok){ const s=loadSRS(); const it=s[con]||{stage:-1};
+  const st = ok ? Math.min((it.stage<0?0:it.stage+1), INTERVALS.length-1) : 0;
+  s[con]={stage:st, due:Date.now()+INTERVALS[st]*DAY}; saveSRS(s); }
+
+const review=document.getElementById("review"), rbody=document.getElementById("rbody"), reviewBtn=document.getElementById("reviewBtn");
+let rQueue=[];
+function updateBadge(){ const n=dueList().length; reviewBtn.textContent="📅 复习"+(n?` (${n})`:""); reviewBtn.classList.toggle("on",n>0); }
+
+function openReview(){ resetView(); if(bridgeOn) bridgeBtn.click(); quiz.classList.remove("show"); renderDash(); review.classList.add("show"); }
+function renderDash(){
+  const s=loadSRS();
+  const learned=Object.keys(s).filter(c=>DATA[c]);
+  const due=learned.filter(c=>s[c].due<=Date.now());
+  const newCount=concepts.filter(c=>!s[c]).length;
+  document.getElementById("rtitle").textContent="复习计划";
+  rbody.innerHTML=`
+    <div class="rstat">已加入计划：<b>${learned.length}</b> 组　·　今日待复习：<b style="color:#9ec25a">${due.length}</b> 组　·　未学：<b>${newCount}</b> 组</div>
+    ${due.length?`<div class="qprompt" style="margin-bottom:8px">今天到期（点单组也可单独练）：</div><div id="duechips" style="margin-bottom:14px"></div>`:`<div class="qprompt" style="margin-bottom:14px;color:#9ec25a">今天没有到期的复习，太棒了 🎉 可以学点新词。</div>`}
+    <div class="qbtns">
+      ${due.length?`<button class="qnext" id="rstart">开始复习 (${due.length})</button>`:``}
+      <button class="qreveal" id="rnew">学一组新词 +</button>
+    </div>`;
+  if(due.length){
+    const dc=document.getElementById("duechips");
+    dc.innerHTML=due.map(c=>`<span class="dchip" data-con="${encodeURIComponent(c)}" style="display:inline-block;background:#262932;border:1px solid #343844;color:#c8cad2;font-size:13px;padding:4px 10px;border-radius:6px;margin:0 6px 6px 0;cursor:pointer">${c}</span>`).join("");
+    dc.querySelectorAll(".dchip").forEach(ch=>ch.onclick=()=>startSession([decodeURIComponent(ch.getAttribute("data-con"))]));
+    document.getElementById("rstart").onclick=()=>startSession(due.slice());
+  }
+  document.getElementById("rnew").onclick=()=>{
+    const news=concepts.filter(c=>!loadSRS()[c]);
+    if(!news.length){ alert("所有词组都已加入复习计划啦！"); return; }
+    startSession([news[Math.floor(Math.random()*news.length)]]);
+  };
+}
+function startSession(list){ rQueue=list.slice(); showCard(); }
+function showCard(){
+  if(!rQueue.length){ renderDash(); updateBadge(); return; }
+  const con=rQueue[0], left=rQueue.length;
+  document.getElementById("rtitle").textContent="复习：「"+con+"」";
+  const words=DATA[con].words||[];
+  rbody.innerHTML=`
+    <div class="qsub">看中文回忆英文，点卡片揭晓（队列还剩 ${left} 组）</div>
+    <div id="rlist">${words.map(([w,diff,eg])=>`
+      <div class="qitem"><div class="qprompt">${diff}</div><div class="tap">点击显示英文 ▾</div>
+      <div class="qa"><span class="qans">${w}</span>${eg?`<span class="qe">${eg}</span>`:''}</div></div>`).join("")}</div>
+    <div class="qbtns" style="margin-top:6px"><button class="qreveal" id="rshow">全部显示英文</button></div>
+    <div class="qbtns"><button class="qreveal" id="rforgot" style="background:#4a2730;color:#e9a3ad">忘了 ✗（重头记）</button><button class="qnext" id="rgot" style="background:#3a6a4a">记得 ✓（拉长间隔）</button></div>`;
+  rbody.querySelectorAll("#rlist .qitem").forEach(it=>it.onclick=()=>it.classList.toggle("revealed"));
+  document.getElementById("rshow").onclick=()=>rbody.querySelectorAll("#rlist .qitem").forEach(it=>it.classList.add("revealed"));
+  document.getElementById("rgot").onclick=()=>{ rate(con,true); rQueue.shift(); showCard(); updateBadge(); };
+  document.getElementById("rforgot").onclick=()=>{ rate(con,false); rQueue.shift(); showCard(); updateBadge(); };
+}
+reviewBtn.onclick=openReview;
+document.getElementById("rclose").onclick=()=>{ review.classList.remove("show"); updateBadge(); };
+review.addEventListener("click",e=>{ if(e.target===review){ review.classList.remove("show"); updateBadge(); } });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") review.classList.remove("show"); });
+updateBadge();
 
 window.addEventListener("resize",()=>{ sim.force("center",d3.forceCenter(W()/2,H()/2)); sim.alpha(.3).restart(); });
 setTimeout(()=>{ svg.transition().duration(700).call(zoom.transform, d3.zoomIdentity.translate(W()*0.08,H()*0.08).scale(0.42)); }, 500);
