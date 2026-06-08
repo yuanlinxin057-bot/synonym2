@@ -46,9 +46,10 @@
   .qhead .qx:hover { background:#3a3d46; color:#fff; }
   .qsub { font-size:12px; color:#7d808a; margin-bottom:16px; }
   .qitem { background:#202329; border:1px solid #2a2c34; border-radius:10px; padding:12px 14px; margin-bottom:10px; cursor:pointer; }
-  .qitem .qw { font-size:18px; font-weight:700; color:#e8eaf0; }
-  .qitem .qe { font-size:13px; color:#7f86c0; font-style:italic; margin-top:3px; }
-  .qitem .qa { font-size:14px; color:#9ec25a; margin-top:8px; display:none; line-height:1.5; }
+  .qitem .qprompt { font-size:16px; color:#e8eaf0; line-height:1.5; }
+  .qitem .qa { margin-top:8px; display:none; line-height:1.5; }
+  .qitem .qa .qans { font-size:19px; font-weight:700; color:#9ec25a; }
+  .qitem .qa .qe { font-size:13px; color:#7f86c0; font-style:italic; margin-left:6px; }
   .qitem.revealed .qa { display:block; }
   .qitem .tap { font-size:11px; color:#6b6e78; margin-top:6px; }
   .qitem.revealed .tap { display:none; }
@@ -98,7 +99,7 @@
 </div>
 <div id="quiz"><div class="qcard">
   <div class="qhead"><h3 id="qtitle"></h3><button class="qx" id="qclose">✕</button></div>
-  <div class="qsub">回想每个词的意思和区别，点卡片显示答案</div>
+  <div class="qsub">看中文回忆英文，点卡片揭晓答案</div>
   <div id="qlist"></div>
   <div class="qbtns"><button class="qreveal" id="qrevealAll">全部显示</button><button class="qnext" id="qnext">换一组 →</button></div>
 </div></div>
@@ -273,10 +274,9 @@ function newQuiz(){
   const words=DATA[con].words.slice();
   document.getElementById("qlist").innerHTML=words.map(([w,diff,eg])=>`
     <div class="qitem">
-      <div class="qw">${w}</div>
-      ${eg?`<div class="qe">${eg}</div>`:''}
-      <div class="tap">点击显示意思 ▾</div>
-      <div class="qa">${diff}</div>
+      <div class="qprompt">${diff}</div>
+      <div class="tap">点击显示英文 ▾</div>
+      <div class="qa"><span class="qans">${w}</span>${eg?`<span class="qe">${eg}</span>`:''}</div>
     </div>`).join("");
   document.querySelectorAll("#qlist .qitem").forEach(it=>it.onclick=()=>it.classList.toggle("revealed"));
 }
