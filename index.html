@@ -32,6 +32,31 @@
   .dot { width:11px; height:11px; border-radius:50%; display:inline-block; }
   #hint { position:absolute; bottom:14px; left:14px; font-size:11px; color:#6b6e78; background:rgba(30,32,38,.7); padding:6px 12px; border-radius:6px; }
 
+  .tbtn { background:rgba(30,32,38,.9); border:1px solid #3a3d46; color:#dcdde1; padding:8px 12px; border-radius:8px; font-size:13px; cursor:pointer; }
+  .tbtn:hover { border-color:#6f86d6; color:#fff; }
+  .tbtn.on { background:#3a3320; border-color:#f0c674; color:#f0c674; }
+
+  /* 测验弹层 */
+  #quiz { position:absolute; inset:0; background:rgba(12,13,16,.82); backdrop-filter:blur(4px); z-index:30; display:none; align-items:center; justify-content:center; }
+  #quiz.show { display:flex; }
+  .qcard { width:min(560px,92vw); max-height:86vh; overflow-y:auto; background:#1b1d23; border:1px solid #2a2c34; border-radius:14px; padding:24px; }
+  .qhead { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .qhead h3 { font-size:22px; color:#fff; }
+  .qhead .qx { width:30px; height:30px; border-radius:8px; background:#2a2d36; color:#c8cad2; border:none; font-size:18px; cursor:pointer; }
+  .qhead .qx:hover { background:#3a3d46; color:#fff; }
+  .qsub { font-size:12px; color:#7d808a; margin-bottom:16px; }
+  .qitem { background:#202329; border:1px solid #2a2c34; border-radius:10px; padding:12px 14px; margin-bottom:10px; cursor:pointer; }
+  .qitem .qw { font-size:18px; font-weight:700; color:#e8eaf0; }
+  .qitem .qe { font-size:13px; color:#7f86c0; font-style:italic; margin-top:3px; }
+  .qitem .qa { font-size:14px; color:#9ec25a; margin-top:8px; display:none; line-height:1.5; }
+  .qitem.revealed .qa { display:block; }
+  .qitem .tap { font-size:11px; color:#6b6e78; margin-top:6px; }
+  .qitem.revealed .tap { display:none; }
+  .qbtns { display:flex; gap:10px; margin-top:8px; }
+  .qbtns button { flex:1; padding:10px; border-radius:9px; border:none; font-size:14px; cursor:pointer; }
+  .qnext { background:#6f86d6; color:#fff; }
+  .qreveal { background:#2a2d36; color:#cdd0d8; }
+
   #panel { width:340px; background:#1b1d23; border-left:1px solid #2a2c34; padding:20px 22px; overflow-y:auto; transition:margin-right .25s; position:relative; }
   #panel.hidden { margin-right:-340px; }
   #close { position:absolute; top:14px; right:16px; width:30px; height:30px; border-radius:8px; background:#2a2d36; color:#c8cad2; border:none; font-size:18px; cursor:pointer; line-height:1; display:flex; align-items:center; justify-content:center; }
@@ -59,6 +84,8 @@
     <div id="top">
       <div id="title">英语单词联想网络 <small id="stat"></small></div>
       <input id="search" placeholder="搜索单词 / 概念…" autocomplete="off">
+      <button id="quizBtn" class="tbtn">🎲 测验</button>
+      <button id="bridgeBtn" class="tbtn">桥词</button>
       <div class="info">
         <span><i class="dot" style="background:#6f86d6"></i>概念</span>
         <span><i class="dot" style="background:#2a2d36;border:2px solid #5b5e68"></i>单词</span>
@@ -69,6 +96,12 @@
   </div>
   <div id="panel" class="hidden"><button id="close" title="关闭 (Esc)">✕</button><div id="pbody"></div></div>
 </div>
+<div id="quiz"><div class="qcard">
+  <div class="qhead"><h3 id="qtitle"></h3><button class="qx" id="qclose">✕</button></div>
+  <div class="qsub">回想每个词的意思和区别，点卡片显示答案</div>
+  <div id="qlist"></div>
+  <div class="qbtns"><button class="qreveal" id="qrevealAll">全部显示</button><button class="qnext" id="qnext">换一组 →</button></div>
+</div></div>
 
 <!-- 单词数据在 data.js 里，想加词只改那个文件 -->
 <script src="data.js"></script>
@@ -216,6 +249,43 @@ search.addEventListener("keydown",e=>{
     const wn=wordNode[q]||Object.values(wordNode).find(n=>n.label.toLowerCase().includes(q));
     if(wn) showWord(wn); }
 });
+
+// ---- 桥词高亮开关 ----
+const bridgeBtn=document.getElementById("bridgeBtn");
+let bridgeOn=false;
+bridgeBtn.onclick=()=>{
+  bridgeOn=!bridgeOn; bridgeBtn.classList.toggle("on",bridgeOn);
+  if(bridgeOn){
+    pinned=null; panel.classList.add("hidden");
+    const keep=new Set();
+    nodes.forEach(n=>{ if(n.type==="word"&&n.bridge){ keep.add(n.id); adj[n.id].forEach(x=>keep.add(x)); } });
+    applyDim(keep);
+  } else clearHi();
+};
+
+// ---- 测验模式 ----
+const quiz=document.getElementById("quiz");
+const quizableCons=concepts.filter(c=>(DATA[c].words||[]).length>=3);
+function newQuiz(){
+  const con=quizableCons[Math.floor(Math.random()*quizableCons.length)];
+  document.getElementById("qtitle").textContent="考考你：「"+con+"」";
+  document.getElementById("qtitle").style.color=conColor[con];
+  const words=DATA[con].words.slice();
+  document.getElementById("qlist").innerHTML=words.map(([w,diff,eg])=>`
+    <div class="qitem">
+      <div class="qw">${w}</div>
+      ${eg?`<div class="qe">${eg}</div>`:''}
+      <div class="tap">点击显示意思 ▾</div>
+      <div class="qa">${diff}</div>
+    </div>`).join("");
+  document.querySelectorAll("#qlist .qitem").forEach(it=>it.onclick=()=>it.classList.toggle("revealed"));
+}
+document.getElementById("quizBtn").onclick=()=>{ if(bridgeOn) bridgeBtn.click(); resetView(); newQuiz(); quiz.classList.add("show"); };
+document.getElementById("qnext").onclick=newQuiz;
+document.getElementById("qrevealAll").onclick=()=>document.querySelectorAll("#qlist .qitem").forEach(it=>it.classList.add("revealed"));
+document.getElementById("qclose").onclick=()=>quiz.classList.remove("show");
+quiz.addEventListener("click",e=>{ if(e.target===quiz) quiz.classList.remove("show"); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") quiz.classList.remove("show"); });
 
 window.addEventListener("resize",()=>{ sim.force("center",d3.forceCenter(W()/2,H()/2)); sim.alpha(.3).restart(); });
 setTimeout(()=>{ svg.transition().duration(700).call(zoom.transform, d3.zoomIdentity.translate(W()*0.08,H()*0.08).scale(0.42)); }, 500);
